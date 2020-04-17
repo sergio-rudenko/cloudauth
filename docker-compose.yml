@@ -1,0 +1,47 @@
+version: '3.7'
+
+services:
+  app:
+    container_name: cloudauth
+    build: ./src
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASS}@db/${POSTGRES_BASE}
+      - POSTGRES_DB=${POSTGRES_BASE}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASS}
+    command: ["./wait-for-postgres.sh", "cloudauth_database", "uvicorn", "app.main:app --reload --host 0.0.0.0 --port 8001"]
+    volumes:
+      - ./src:/usr/src/project/
+    networks:
+      - postgresdb_net
+    ports:
+      - 8001:8001
+    depends_on:
+      - db
+    restart: unless-stopped
+    logging:
+      driver: "syslog"
+      options:
+        tag: "cloudauth_app"
+
+  db:
+    container_name: cloudauth_database
+    image: postgres:12.1-alpine
+    environment:
+      - POSTGRES_DB=${POSTGRES_BASE}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASS}
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data/
+    networks:
+      - postgresdb_net
+    restart: unless-stopped
+    logging:
+      driver: "syslog"
+      options:
+        tag: "cloudauth_db"
+
+
+networks:
+    postgresdb_net:
+      name: postgresdb_net

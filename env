@@ -1,0 +1,8 @@
+# prefix
+SERVICE_PREFIX=/cloudauth
+
+# database credentials
+POSTGRES_BASE=cloudauth_db
+POSTGRES_USER=cloudauth
+POSTGRES_PASS=P@ssW0rd
+
