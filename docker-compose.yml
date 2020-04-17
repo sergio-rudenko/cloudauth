@@ -5,7 +5,7 @@ services:
     container_name: cloudauth
     build: ./src
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASS}@db/${POSTGRES_BASE}
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASS}@${POSTGRES_HOST}/${POSTGRES_BASE}
       - POSTGRES_DB=${POSTGRES_BASE}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASS}
@@ -25,7 +25,7 @@ services:
         tag: "cloudauth_app"
 
   db:
-    container_name: cloudauth_database
+    container_name: ${POSTGRES_HOST}
     image: postgres:12.1-alpine
     environment:
       - POSTGRES_DB=${POSTGRES_BASE}
