@@ -90,16 +90,16 @@ async def read_user(auth_hash: str = None, lk_token: str = None, phone: str = No
             raise HTTPException(status_code=401, detail="not authorised")
 
         if auth_hash:
-            hash_record = db.query(models.Hash).filter(models.Hash.key == auth_hash).first()
-            if not hash_record:
+            db_hash = db.query(models.Hash).filter(models.Hash.key == auth_hash).first()
+            if not db_hash:
                 raise HTTPException(status_code=404, detail="not found")
-            user_id = hash_record.user_id
+            user_id = db_hash.user_id
 
         if lk_token:
-            token_record = db.query(models.Token).filter(models.Token.key == lk_token).first()
-            if not token_record:
+            db_token = db.query(models.Token).filter(models.Token.key == lk_token).first()
+            if not db_token:
                 raise HTTPException(status_code=404, detail="not found")
-            user_id = token_record.user_id
+            user_id = db_token.user_id
 
         return db.query(models.User).filter(models.User.id == user_id).first()
 
@@ -110,13 +110,18 @@ def create_user_token(payload: schemas.TokenCreate, x_token: str = Header(...), 
     if not authorised(token=x_token):
         raise HTTPException(status_code=401, detail="not authorised")
 
-    user_record = db_get_user_by_phone(db, payload.user_phone)
-    if not user_record:
-        user_record = db_add_user(db, schemas.UserCreate(
+    db_user = db_get_user_by_phone(db, payload.user_phone)
+    if not db_user:
+        db_user = db_add_user(db, schemas.UserCreate(
             phone=payload.user_phone,
             description='created by create_user_token'
         ))
-    return db_add_token(db, payload, user_record.id)
+
+    db_token = db.query(models.Token).filter(models.Token.key == payload.key).first()
+    if db_token:
+        raise HTTPException(status_code=409, detail="already exists")
+
+    return db_add_token(db, payload, db_user.id)
 
 
 @router.post('/users/{user_phone}/hashes/', tags=['CRUD'], status_code=201, response_model=schemas.Hash)
@@ -130,4 +135,9 @@ def create_user_hash(payload: schemas.HashCreate, x_token: str = Header(...), db
             phone=payload.user_phone,
             description='created by create_user_hash'
         ))
+
+    db_hash = db.query(models.Hash).filter(models.Hash.key == payload.key).first()
+    if db_hash:
+        raise HTTPException(status_code=409, detail="already exists")
+
     return db_add_auth_hash(db, payload, user_record.id)
