@@ -59,6 +59,30 @@ async def read_user_list(offset: int = 0, limit: int = 100, x_token: str = Heade
     return db.query(models.User).offset(offset).limit(limit).all()
 
 
+@router.delete("/users/{phone}/", tags=['admin'], status_code=204)
+async def delete_user(phone: str = None, x_token: str = Header(...), db: Session = Depends(get_db)):
+    if not check_authorised(token=x_token, admin_access_required=True):
+        raise HTTPException(status_code=401, detail="Admin Token Required")
+
+    db_user = db_get_user_by_phone(db, phone)
+    if not db_user:
+        raise HTTPException(status_code=404, detail="Not Found")
+
+    db_hash_list = db.query(models.Hash).filter(models.Hash.user_id == db_user.id).all()
+    for db_hash in db_hash_list:
+        db.delete(db_hash)
+    db.commit()
+
+    db_token_list = db.query(models.Token).filter(models.Token.user_id == db_user.id).all()
+    for db_token in db_token_list:
+        db.delete(db_token)
+    db.commit()
+
+    db.delete(db_user)
+    db.commit()
+    return None
+
+
 @router.get("/tokens/", tags=['admin'], response_model=List[schemas.Token])
 async def read_token_list(offset: int = 0, limit: int = 100, x_token: str = Header(...), db: Session = Depends(get_db)):
     if not check_authorised(token=x_token, admin_access_required=True):
@@ -108,30 +132,6 @@ async def read_user(auth_hash: str = None, lk_token: str = None, phone: str = No
         return db.query(models.User).filter(models.User.id == user_id).first()
 
 
-@router.delete("/user/{phone}/", tags=['admin'], status_code=204)
-async def read_user(phone: str = None, x_token: str = Header(...), db: Session = Depends(get_db)):
-    if not check_authorised(token=x_token, admin_access_required=True):
-        raise HTTPException(status_code=401, detail="Admin Token Required")
-
-    db_user = db_get_user_by_phone(db, phone)
-    if not db_user:
-        raise HTTPException(status_code=404, detail="Not Found")
-
-    db_hash_list = db.query(models.Hash).filter(models.Hash.user_id == db_user.id).all()
-    for db_hash in db_hash_list:
-        db.delete(db_hash)
-    db.commit()
-
-    db_token_list = db.query(models.Token).filter(models.Token.user_id == db_user.id).all()
-    for db_token in db_token_list:
-        db.delete(db_token)
-    db.commit()
-
-    db.delete(db_user)
-    db.commit()
-    return None
-
-
 # CRUD -----------------------------------------------------------------------
 @router.post('/tokens/', tags=['CRUD'], status_code=201, response_model=schemas.Token)
 def create_user_token(payload: schemas.TokenCreate, x_token: str = Header(...), db: Session = Depends(get_db)):
@@ -172,7 +172,7 @@ def create_user_hash(payload: schemas.HashCreate, x_token: str = Header(...), db
 
 
 @router.delete("/hashes/{auth_hash}/", tags=['CRUD'], status_code=204)
-async def read_user(auth_hash: str = None, x_token: str = Header(...), db: Session = Depends(get_db)):
+async def delete_user_hash(auth_hash: str = None, x_token: str = Header(...), db: Session = Depends(get_db)):
     if not check_authorised(token=x_token):
         raise HTTPException(status_code=401, detail="Not Authorised")
 
@@ -186,7 +186,7 @@ async def read_user(auth_hash: str = None, x_token: str = Header(...), db: Sessi
 
 
 @router.delete("/tokens/{lk_token}/", tags=['CRUD'], status_code=204)
-async def read_user(lk_token: str = None, x_token: str = Header(...), db: Session = Depends(get_db)):
+async def delete_user_token(lk_token: str = None, x_token: str = Header(...), db: Session = Depends(get_db)):
     if not check_authorised(token=x_token):
         raise HTTPException(status_code=401, detail="Not Authorised")
 

@@ -101,9 +101,9 @@ def test_read_user(test_app, token, params, status_code, text):
     ('/tokens/', fake_data1['key'], conf.USER_TOKEN, 204, 'null'),
     ('/tokens/', fake_data1['key'], conf.USER_TOKEN, 404, '{"detail":"Not Found"}'),
 
-    ('/user/', fake_data1['user_phone'], conf.USER_TOKEN, 401, '{"detail":"Admin Token Required"}'),
-    ('/user/', fake_data1['user_phone'], conf.ADMIN_TOKEN, 204, "null"),
-    ('/user/', fake_data1['user_phone'], conf.ADMIN_TOKEN, 404, '{"detail":"Not Found"}'),
+    ('/users/', fake_data1['user_phone'], conf.USER_TOKEN, 401, '{"detail":"Admin Token Required"}'),
+    ('/users/', fake_data1['user_phone'], conf.ADMIN_TOKEN, 204, "null"),
+    ('/users/', fake_data1['user_phone'], conf.ADMIN_TOKEN, 404, '{"detail":"Not Found"}'),
 ])
 def test_delete_user_token_or_hash(test_app, path, key, token, status_code, text):
     response = test_app.delete(f'{conf.api_prefix}{path}{key}/', headers={'X-Token': token})

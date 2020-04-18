@@ -1,5 +1,7 @@
 # CHANGELOG
 
+## v0.1.1 (2020.04.19)
+1. fix CRUD function names
 
 ## v0.1.0 (2020.04.19)
 1. test added
