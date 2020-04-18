@@ -1,5 +1,5 @@
-# prefix
 SERVICE_PREFIX=/cloudauth
+SERVICE_NAME=cloudauth
 
 # database credentials
 POSTGRES_HOST=cloudauth_database

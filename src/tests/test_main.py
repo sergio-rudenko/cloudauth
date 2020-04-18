@@ -1,13 +1,19 @@
-from app import conf
+import pytest
 
 
-def test_message(test_app):
-    response = test_app.get(f'{conf.api_prefix}/test', headers={'X-Token': '12345678'})
+def test_path(test_app):
+    response = test_app.get('/')
     assert response.status_code == 200
-    assert response.text == '{"message":"Hello, World!"}'
+    print(response.text)
 
 
-def test_message_failed(test_app):
-    response = test_app.get(f'{conf.api_prefix}/test', headers={'X-Token': ''})
-    assert response.status_code == 401
-    assert response.text == '{"detail":"token required"}'
+@pytest.mark.parametrize("headers, status_code, text", [
+    ({'X-Token': 'not_empty_token'}, 200, '{"message":"Hello, World!"}'),
+    ({'X-Token': ''}, 401, '{"detail":"token required"}'),
+    ({}, 422, ''),
+])
+def test_message(test_app, headers, status_code, text):
+    response = test_app.get('/test', headers=headers)
+    assert response.status_code == status_code
+    if response.status_code != 422:
+        assert response.text == text

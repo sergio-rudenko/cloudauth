@@ -60,13 +60,13 @@ async def add_process_time_header(request: Request, call_next):
 
 @app.on_event("startup")
 async def startup():
-    print("app::event: startup")
+    print("app event: startup")
     return None
 
 
 @app.on_event("shutdown")
 async def shutdown():
-    print("app::event: shutdown")
+    print("app event: shutdown")
     return None
 
 

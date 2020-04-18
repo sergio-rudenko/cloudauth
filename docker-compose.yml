@@ -2,7 +2,7 @@ version: '3.7'
 
 services:
   app:
-    container_name: cloudauth
+    container_name: ${SERVICE_NAME}
     build: ./src
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASS}@${POSTGRES_HOST}/${POSTGRES_BASE}
